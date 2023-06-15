@@ -8,6 +8,7 @@ on:
     
 env:
   TESTE: ${{ github.ref == 'refs/heads/main' && 'IMMA MAIN' || github.ref == 'refs/heads/test' && 'IMMA TESTIN' || github.ref == 'refs/heads/branch' && 'IMMA USEFUL' }}
+  teste2: ${{ if eq(github.ref, 'refs/heads/main') }}value-for-branch-a${{ else if eq(github.ref, 'refs/heads/test') }}value-for-branch-b${{ else if eq(github.ref, 'refs/heads/branch') }}value-for-branch-c${{ else }}value-for-other-branches${{ endif }}
 
 jobs:
 
@@ -23,3 +24,4 @@ jobs:
     - name: "Testando condicional"
       run: |
         echo $TESTE
+        echo $teste2
