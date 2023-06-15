@@ -17,8 +17,10 @@ jobs:
       with:
           ref: teste
 
-    - name: Set Environment Variable
-      uses: ./.github/actions/set-env.yaml
+    - name: Set Environment Variables
+      id: set_env_vars
+      run: |
+        export $(cat teste.env)
 
     - name: "Testando condicional"
       run: |
