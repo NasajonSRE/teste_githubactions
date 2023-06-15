@@ -20,7 +20,10 @@ jobs:
     - name: Set Environment Variables
       id: set_env_vars
       run: |
+        set -a
         source teste.env
+        set +a
+        env > env-file
 
     - name: "Testando condicional"
       run: |
