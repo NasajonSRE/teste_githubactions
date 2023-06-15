@@ -1,4 +1,4 @@
-name: "Main"
+name: "Agora e o certo guigui"
 
 on:
   push:
@@ -11,25 +11,33 @@ on:
       - development
   workflow_dispatch:
 
+env:
+  SPRINT: 2306
+
 jobs:
   init:
     runs-on: ubuntu-latest
     outputs:
-      teste_env: ${{ steps.setvars.outputs.teste_env }}
-      phase: ${{ steps.setvars.outputs.phase }}
+      CLUSTER: ${{ steps.setvars.outputs.cluster }}      
+      VERSION: ${{ steps.setvars.outputs.version }}
+      VAULT_URL: ${{ steps.setvars.outputs.vault_url }}
+
+      
 
     steps:
       - name: Set variables
         id: setvars
         run: |
           if [[ "${{github.base_ref}}" == "main" || "${{github.ref}}" == "refs/heads/main" ]]; then
-            echo "::set-output name=teste_env::TESTE-MAIN"
-            echo "::set-output name=phase::main"
+            echo "::set-output name=cluster::zta-prod"
+            echo "::set-output name=version::v1.$SPRINT"
+            echo "::set-output name=vault_url::safe.nasajon.app"
           fi
 
           if [[ "${{github.base_ref}}" == "development" || "${{github.ref}}" == "refs/heads/development" ]]; then
-            echo "::set-output name=teste_env::TESTE-DEVELOPMENT"
-            echo "::set-output name=phase::development"
+            echo "::set-output name=cluster::zta-dev"
+            echo "::set-output name=version::v1.$SPRINT-alpha0"
+            echo "::set-output name=vault_url::safe.nasajon.dev"
           fi
 
   print:
@@ -37,4 +45,7 @@ jobs:
     needs: init
     steps:
       - name: Print
-        run: echo "teste_env=${{needs.init.outputs.teste_env}}"
+        run: | 
+          echo "${{needs.init.outputs.CLUSTER}}"
+          echo "${{needs.init.outputs.VERSION}}"
+          echo "${{needs.init.outputs.VAULT_URL}}"
