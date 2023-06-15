@@ -1,0 +1,16 @@
+name: Set Environment Variable
+runs:
+  using: "composite"
+  steps:
+    - name: Set Environment Variable
+      id: set_env
+      run: |
+        if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+          echo "MY_ENV_VAR=IMMA MAIN" >> $GITHUB_ENV
+        elif [[ "${{ github.ref }}" == "refs/heads/teste" ]]; then
+          echo "MY_ENV_VAR=IMMA TEST" >> $GITHUB_ENV
+        elif [[ "${{ github.ref }}" == "refs/heads/branch" ]]; then
+          echo "MY_ENV_VAR=IMMA USEFUL" >> $GITHUB_ENV
+        else
+          echo "MY_ENV_VAR=IMMA SOMETHING ELSE" >> $GITHUB_ENV
+        fi
