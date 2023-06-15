@@ -1,0 +1,25 @@
+name: App Build
+
+on:
+  push:
+    branches:
+      - teste
+  workflow_dispatch:
+    
+env:
+  TESTE: ${{ github.ref == 'refs/heads/main' && 'IMMA MAIN' || github.ref == 'refs/heads/test' && 'IMMA TESTIN' || github.ref == 'refs/heads/branch' && 'IMMA USEFUL' }}
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+          ref: main
+
+    - name: "Testando condicional"
+      run: |
+        echo $TESTE
