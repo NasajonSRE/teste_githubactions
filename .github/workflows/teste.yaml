@@ -15,7 +15,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       with:
-          ref: main
+          ref: teste
 
     - name: Set Environment Variable
       uses: ./.github/actions/set-env.yaml
