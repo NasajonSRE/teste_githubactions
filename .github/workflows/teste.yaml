@@ -42,7 +42,7 @@ jobs:
           echo "version=$BUILD" >> "$GITHUB_ENV"
           echo "vault_url=safe.nasajon.app" >> "$GITHUB_ENV"
           echo "values_file=-values.yaml" >> "$GITHUB_ENV"
-          file_names=$(find ci -name "*-values.yaml" -type f -printf "%f\n" | grep -v "qa-values.yaml" | grep -v "dev-values.yaml")
+          file_names=$(find ci -name "*-values.yaml" -type f -printf "%f\n")
           echo "files=$file_names" >> "$GITHUB_ENV"
         fi
 
