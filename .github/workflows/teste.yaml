@@ -73,6 +73,8 @@ jobs:
           cp ci/${client}-values.yaml ${TEMP_FOLDER}/${client}-values.yaml
           echo "Update Helm values with new image tag"
           sed -i "s/{{ TAG }}/$GITHUB_DOCKERTAG/g" ${TEMP_FOLDER}/${client}-values.yaml
-          cat ${TEMP_FOLDER}/${client}-values.yaml
+          # cat ${TEMP_FOLDER}/${client}-values.yaml
+          echo ${client}
         done
+        ls -lah ${TEMP_FOLDER}/
         echo "done"
