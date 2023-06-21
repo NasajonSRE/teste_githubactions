@@ -45,7 +45,7 @@ jobs:
           file_names=$(find ci -name "*-values.yaml" -type f -printf "%f\n" | grep -vE "qa-values.yaml|dev-values.yaml")
           echo $file_names
           file_list=$(IFS=','; echo "${file_names[*]}")
-          echo "files=$file_list" >> "$GITHUB_ENV"
+          echo "files=${file_names[@]}" >> "$GITHUB_ENV"
         fi
 
     - name: Obter Lista de Nomes de Arquivos
