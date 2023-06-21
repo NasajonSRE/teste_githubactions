@@ -48,24 +48,8 @@ jobs:
             name="${file%-values.yaml}"
             file_list+=("$name")
           done
-          # echo $file_names
-          # file_list=$(IFS=','; echo "${file_names[*]}")
-          # echo $file_list
           echo "nomes=${file_list[@]}" >> "$GITHUB_ENV"
         fi
-
-    # - name: Obter Lista de Nomes de Arquivos
-    #   id: get_files
-    #   run: |
-    #     names=()
-    #     IFS=',' read -ra FILENAMES <<< "${{ env.files }}"
-    #     for file in ${FILENAMES[@]}; do
-    #       name="${file%-values.yaml}"
-    #       echo $name
-    #       names+=("$name")
-    #     done
-    #     echo $names
-    #     echo "nomes=${names[@]}" >> "$GITHUB_ENV"
 
   build:
 
@@ -84,14 +68,11 @@ jobs:
       run: | 
         echo Create temporary folder to clone the repo into...
         TEMP_FOLDER="$(mktemp -d)" 
-        start=$pwd
         for client in $NAMES; do
-          ls -lah
+          echo " "
           cp ci/${client}-values.yaml ${TEMP_FOLDER}/${client}-values.yaml
-          cd ${TEMP_FOLDER}/
           echo "Update Helm values with new image tag"
-          sed -i "s/{{ TAG }}/$GITHUB_DOCKERTAG/g" ${client}-values.yaml
+          sed -i "s/{{ TAG }}/$GITHUB_DOCKERTAG/g" ${TEMP_FOLDER}/${client}-values.yaml
           cat ${client}-values.yaml
-          cd $start/
         done
         echo "done"
