@@ -45,6 +45,7 @@ jobs:
           file_names=$(find ci -name "*-values.yaml" -type f -printf "%f\n" | grep -vE "qa-values.yaml|dev-values.yaml")
           echo $file_names
           file_list=$(IFS=','; echo "${file_names[*]}")
+          echo $file_list
           echo "files=${file_names[@]}" >> "$GITHUB_ENV"
         fi
 
@@ -58,6 +59,7 @@ jobs:
           echo $name
           names+=("$name")
         done
+        echo $names
         echo "nomes=${names[@]}" >> "$GITHUB_ENV"
 
   build:
