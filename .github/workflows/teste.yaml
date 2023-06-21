@@ -53,8 +53,9 @@ jobs:
       run: |
         names=()
         IFS=',' read -ra FILENAMES <<< "${{ env.files }}"
-        for file in $IFS; do
+        for file in ${FILENAMES[@]}; do
           name="${file%-values.yaml}"
+          echo $name
           names+=("$name")
         done
         echo "nomes=${names[@]}" >> "$GITHUB_ENV"
