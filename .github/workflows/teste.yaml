@@ -6,25 +6,83 @@ on:
       - teste
   workflow_dispatch:
     
+env:
+  APP_NAME: ana-data
+  ARGO_PROJECT: ana-data
+  CHART_FOLDER: charts/projeto-ana
+  HELM_REPO: git@github.com:NasajonSRE/helm.git
+  BRANCH_NAME: development
+  HARBOR_PROJECT: ana
+
 jobs:
 
-  build:
+  init:
 
     runs-on: ubuntu-latest
+    outputs:
+      CLIENTES: ${{ env.nomes }}
+      CLUSTER: ${{ env.cluster }}
+      VERSION: ${{ env.version }}
+      VAULT_URL: ${{ env.vault_url }}
+      VALUES_FILE: ${{ env.values_file }}
+      FILES: ${{ env.files }}
+      NAMES: ${{ env.nomes }}
 
     steps:
     - uses: actions/checkout@v3
       with:
-          ref: teste
+          ref: ${{github.base_ref}}
 
-    - name: Set Environment Variables
-      id: set_env_vars
+    - name: Set variables
+      id: setvars
       run: |
-        set -a
-        source teste.env
-        set +a
-        env > env-file
 
-    - name: "Testando condicional"
+        if [[ "${{github.base_ref}}" == "teste" || "${{github.ref}}" == "refs/heads/teste" ]]; then
+          echo "cluster=nasajon-prod" >> "$GITHUB_ENV"
+          echo "version=$BUILD" >> "$GITHUB_ENV"
+          echo "vault_url=safe.nasajon.app" >> "$GITHUB_ENV"
+          echo "values_file=-values.yaml" >> "$GITHUB_ENV"
+          files=$(find ci -name "*-values.yaml" -type f -printf "%f\n" | grep -v "qa-values.yaml" | grep -v "dev-values.yaml")
+          echo "files=$files" >> "$GITHUB_ENV"
+        fi
+
+    - name: Obter Lista de Nomes de Arquivos
+      id: get_files
       run: |
-        echo $MY_ENV_VAR
+        names=()
+        for file in ${{ env.files }}; do
+          name="${file%-values.yaml}"
+          names+=("$name")
+        done
+        echo "nomes=${names[@]}" >> "$GITHUB_ENV"
+
+  build:
+
+    runs-on: ubuntu-latest
+    needs: init
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+          ref: ${{github.base_ref}}
+
+    - name: Render Values in Helm git repo 
+      env:
+        NAMES: ${{ needs.init.outputs.NAMES }}
+        CLUSTER: ${{ env.cluster }}
+      run: | 
+        echo Create temporary folder to clone the repo into...
+        TEMP_FOLDER="$(mktemp -d)" 
+        echo Clone the repository...
+        git clone -b main "git@github.com:NasajonSRE/helm.git" ${TEMP_FOLDER}
+        start=$pwd
+        for client in $NAMES; do
+          ls -lah
+          cp ci/${client}-values.yaml ${TEMP_FOLDER}/${client}-values.yaml
+          cd ${TEMP_FOLDER}/
+          echo "Update Helm values with new image tag"
+          sed -i "s/{{ TAG }}/$GITHUB_DOCKERTAG/g" ${client}-values.yaml
+          cat ${client}-values.yaml
+          cd $start/
+        done
+        echo "done"

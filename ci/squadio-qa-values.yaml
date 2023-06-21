@@ -1,0 +1,48 @@
+replicaCount: 2
+
+image:
+  repository: hub.nasajon.in/ana/ana-data
+  tag: "{{ TAG }}"
+
+namespace:
+  name: squadio
+
+ingress:
+  hosts:
+  - host: squadio.anadata.nasajon.qa
+    paths:
+      - path: /
+        pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - squadio.anadata.nasajon.qa
+
+configMap:
+  create: true
+  name: "squadio-qa-ana-data"
+  data:
+    django_debug: "false"
+    django_allowed_host: "squadio.anadata.nasajon.qa"
+    database_name_nasajon: "squadio"
+    database_host_nasajon: "anaqa.crubcg8kafnf.us-east-1.rds.amazonaws.com"
+    database_port_nasajon: "5432"
+    database_user_nasajon: "ana_data"
+    allowed_username: "ana@nasajon.com.br"
+    keycloak_url: "https://auth.nasajonsistemas.com.br/auth"
+    sentry_env: "SQUADIO-QA"
+
+secret:
+  create: true
+  name: "squadio-qa-ana-data"
+  data: 
+    keycloak_realm: QA
+
+affinity: 
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: node_group
+          operator: In
+          values:
+          - ng-ztaqa

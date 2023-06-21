@@ -1,0 +1,51 @@
+replicaCount: 2
+
+image:
+  repository: hub.nasajon.in/ana/ana-data
+  tag: "{{ TAG }}"
+
+namespace:
+  name: squadio
+
+ingress:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+  - host: squadio.anadata.nasajon.dev
+    paths:
+      - path: /
+        pathType: ImplementationSpecific
+  tls:
+    - secretName: squadio-anadata-tls
+      hosts:
+        - squadio.anadata.nasajon.dev
+
+configMap:
+  create: true
+  name: "squadio-dev-ana-data"
+  data:
+    django_debug: "false"
+    django_allowed_host: "squadio.anadata.nasajon.dev"
+    database_name_nasajon: "squadio"
+    database_host_nasajon: "db.nasajon.dev"
+    database_port_nasajon: "5432"
+    database_user_nasajon: "ana_data"
+    allowed_username: "ana@nasajon.com.br"
+    keycloak_url: "https://auth.dev.nasajonsistemas.com.br/auth"
+    sentry_env: "SQUADIO-DEV"
+
+secret:
+  create: true
+  name: "squadio-dev-ana-data"
+  data: 
+    keycloak_realm: DEV
+
+affinity: 
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: node_group
+          operator: In
+          values:
+          - ng-ztadev

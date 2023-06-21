@@ -1,0 +1,122 @@
+node('aws-codebuild'){
+
+    def CLUSTER = "nasajon-ztapilot"
+    def BRANCH = 'development'
+    def nameWithoutExt = ''
+    def FILTER = ''
+    def filenames = []
+    def DEBUG = false
+
+    stage('Clean') {
+        deleteDir()
+    }
+    
+    stage('Fetch') {
+        timeout(time: 60, unit: 'SECONDS') {
+            checkout scm
+        }
+    }
+
+    def APP_NAME = 'ana-data'
+
+    if (env.BRANCH_NAME == 'development') {
+        CLUSTER = "nasajon-ztapilot"
+        BRANCH = 'development'
+        FILTER = '-dev'
+    }
+    else if (env.BRANCH_NAME == 'master') {
+        CLUSTER = "eks-qa"
+        BRANCH = 'master'
+        FILTER = '-qa'
+    }
+    else if (env.BRANCH_NAME == 'production') {
+        CLUSTER = "eks-prod"
+        BRANCH = 'production'
+    }else {
+        DEBUG = true
+        FILTER = '-dev'
+    }
+
+    def SPRINT_VERSION = "/opt/devops/Ansible/roles/sprint_up/files/ssm_manager.py"
+    
+    stage('Environment Config') {
+        sh "auto_config"
+    }
+    
+    SPRINT = sh (
+        script: "python3 $SPRINT_VERSION -p $APP_NAME -m get -b $BRANCH -v sprint",
+        returnStdout: true
+    ).trim()
+
+    BUILD = sh (
+        script: "python3 $SPRINT_VERSION -p $APP_NAME -m get -b $BRANCH -v build",
+        returnStdout: true
+    ).trim()
+
+    def VERSION = "v2.$SPRINT.$BUILD"
+    
+    if (BRANCH == 'master'){
+        VERSION = "v1.$SPRINT.0-rc$BUILD"
+    }else if (BRANCH == 'development') {
+        VERSION = "v1.$SPRINT.0-alpha$BUILD"
+    }
+
+    stage('Docker ship'){
+        sh "docker build --no-cache --rm -t hub.nasajon.com.br/$APP_NAME:$VERSION ."
+        sh "docker push hub.nasajon.com.br/$APP_NAME:$VERSION"
+        sh "docker rmi -f hub.nasajon.com.br/$APP_NAME:$VERSION"
+        if (DEBUG != true) {
+            sh "python3 $SPRINT_VERSION -p $APP_NAME -m update -b $BRANCH -v build"
+        }
+    }
+    stage('Getting filenames'){
+        dir('ci'){
+            def files = findFiles(glob: '*.yaml')
+            for (file in files){
+                nameWithoutExt = file.name.lastIndexOf('.').with {it != -1 ? file.name[0..<it] : file.name}
+                if ( (BRANCH != "production" && nameWithoutExt.contains(FILTER)) || 
+                    (BRANCH.equals('production') && !(nameWithoutExt.contains('-qa') || nameWithoutExt.contains('-dev'))) ){
+                    filenames.add(nameWithoutExt.replace('-values', ''))
+                    println(nameWithoutExt)
+                }
+            }
+        }
+    }
+
+    stage('git clone'){
+        sh "git clone git@github.com:NasajonSRE/helm.git"
+        for(def filename in filenames){
+            sh "cp ci/${filename}-values.yaml helm/charts/projeto-ana/$APP_NAME/${filename}-values.yaml"
+            sh "sed -i \"s/{{ TAG }}/$VERSION/g\" helm/charts/projeto-ana/$APP_NAME/${filename}-values.yaml"
+            if (DEBUG == true){
+                sh 'cat ci/${filename}-values.yaml'
+            }
+        }
+        
+        if (DEBUG == true) {
+            sh 'exit 0'
+        }
+    
+        dir("helm/charts/projeto-ana/$APP_NAME"){
+            sh "git add ."
+            sh "git commit -m \"Rendered Helm chart values for $APP_NAME - Version $VERSION\""
+            sh "git push -u origin main || true"
+        }    	
+    }
+
+    stage('Deploy'){
+        docker.image("hub.nasajon.com.br/sre-utils:0.4").inside() {
+            for(def filename in filenames){
+                sh "cp /workspace/argo-prod.yaml.j2 /workspace/${filename}-argo.yaml"
+                sh "sed -i \"s#./charts/{{ APP }}#./charts/projeto-ana/ana-data#g\" /workspace/${filename}-argo.yaml"
+                sh "sed -i \"s/- values.yaml/- ${filename}-values.yaml/g\" /workspace/${filename}-argo.yaml"
+                sh "sed -i \"s/{{ APP }}/${filename}-ana-data/g\" /workspace/${filename}-argo.yaml"
+                sh "sed -i \"s/{{ CLUSTER }}/$CLUSTER/g\" /workspace/${filename}-argo.yaml"
+                sh "sed -i \"s/{{ NAMESPACE }}/${filename}/g\" /workspace/${filename}-argo.yaml"
+                sh "sed -i \"s/default/ana-data/g\" /workspace/${filename}-argo.yaml"
+                sh "cat /workspace/${filename}-argo.yaml"
+                sh "kubectl --kubeconfig=/workspace/kubeconfig-sre apply -f /workspace/${filename}-argo.yaml"
+            }
+        }
+    }
+}
