@@ -42,7 +42,7 @@ jobs:
           echo "version=$BUILD" >> "$GITHUB_ENV"
           echo "vault_url=safe.nasajon.app" >> "$GITHUB_ENV"
           echo "values_file=-values.yaml" >> "$GITHUB_ENV"
-          file_names=$(find ci -name "*-values.yaml" -type f -printf "%f\n" | grep -vE "qa-values.yaml|dev-values.yaml|froienfarain-values.yaml")
+          file_names=$(find ci -name "*-values.yaml" -type f -printf "%f\n" | grep -vE "qa-values.yaml|dev-values.yaml" | tr ' ' ',')
           echo $file_names
           echo "files=$file_names" >> "$GITHUB_ENV"
         fi
@@ -51,7 +51,8 @@ jobs:
       id: get_files
       run: |
         names=()
-        for file in ${{ env.files }}; do
+        IFS=',' read -ra FILENAMES <<< "${{ env.files }}"
+        for file in $IFS; do
           name="${file%-values.yaml}"
           names+=("$name")
         done
