@@ -43,24 +43,28 @@ jobs:
           echo "vault_url=safe.nasajon.app" >> "$GITHUB_ENV"
           echo "values_file=-values.yaml" >> "$GITHUB_ENV"
           file_names=$(find ci -name "*-values.yaml" -type f -printf "%f\n" | grep -vE "qa-values.yaml|dev-values.yaml")
-          echo $file_names
-          file_list=$(IFS=','; echo "${file_names[*]}")
-          echo $file_list
-          echo "files=${file_names[@]}" >> "$GITHUB_ENV"
+          file_list=()
+          for file in $file_names; do
+            name="${file%-values.yaml}"
+            file_list+=("$name")
+          # echo $file_names
+          # file_list=$(IFS=','; echo "${file_names[*]}")
+          # echo $file_list
+          echo "nomes=${file_list[@]}" >> "$GITHUB_ENV"
         fi
 
-    - name: Obter Lista de Nomes de Arquivos
-      id: get_files
-      run: |
-        names=()
-        IFS=',' read -ra FILENAMES <<< "${{ env.files }}"
-        for file in ${FILENAMES[@]}; do
-          name="${file%-values.yaml}"
-          echo $name
-          names+=("$name")
-        done
-        echo $names
-        echo "nomes=${names[@]}" >> "$GITHUB_ENV"
+    # - name: Obter Lista de Nomes de Arquivos
+    #   id: get_files
+    #   run: |
+    #     names=()
+    #     IFS=',' read -ra FILENAMES <<< "${{ env.files }}"
+    #     for file in ${FILENAMES[@]}; do
+    #       name="${file%-values.yaml}"
+    #       echo $name
+    #       names+=("$name")
+    #     done
+    #     echo $names
+    #     echo "nomes=${names[@]}" >> "$GITHUB_ENV"
 
   build:
 
