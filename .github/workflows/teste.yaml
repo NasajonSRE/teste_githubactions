@@ -76,8 +76,6 @@ jobs:
       run: | 
         echo Create temporary folder to clone the repo into...
         TEMP_FOLDER="$(mktemp -d)" 
-        echo Clone the repository...
-        git clone -b main "git@github.com:NasajonSRE/helm.git" ${TEMP_FOLDER}
         start=$pwd
         for client in $NAMES; do
           ls -lah
