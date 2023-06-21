@@ -47,6 +47,7 @@ jobs:
           for file in $file_names; do
             name="${file%-values.yaml}"
             file_list+=("$name")
+          done
           # echo $file_names
           # file_list=$(IFS=','; echo "${file_names[*]}")
           # echo $file_list
