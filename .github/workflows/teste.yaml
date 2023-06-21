@@ -44,7 +44,7 @@ jobs:
           echo "values_file=-values.yaml" >> "$GITHUB_ENV"
           file_names=$(find ci -name "*-values.yaml" -type f -printf "%f\n" | grep -vE "qa-values.yaml|dev-values.yaml")
           echo $file_names
-          file_list=$(IFS=','; echo "${lista[*]}")
+          file_list=$(IFS=','; echo "${file_names[*]}")
           echo "files=$file_list" >> "$GITHUB_ENV"
         fi
 
