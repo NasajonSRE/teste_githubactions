@@ -5,59 +5,46 @@ on:
     branches:
       - main
       - development
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
 
 env:
   SPRINT: 2306
+  BRANCH: ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
 
 jobs:
   init:
     runs-on: ubuntu-latest
-    outputs:
-      CLUSTER: ${{ steps.setvars.outputs.cluster }}      
-      VERSION: ${{ steps.setvars.outputs.version }}
-      VAULT_URL: ${{ steps.setvars.outputs.vault_url }}
-
-      
+    # outputs:
+    #   CLUSTER: ${{ steps.setvars.outputs.cluster }}      
+    #   VERSION: ${{ steps.setvars.outputs.version }}
+    #   VAULT_URL: ${{ steps.setvars.outputs.vault_url }}
 
     steps:
       - name: Set variables
         id: setvars
         run: |
-          if [[ "${{github.base_ref}}" == "main" || "${{github.ref}}" == "refs/heads/main" ]]; then
-            echo "::set-output name=cluster::zta-prod"
-            echo "::set-output name=version::v1.$SPRINT"
-            echo "::set-output name=vault_url::safe.nasajon.app"
-          fi
-
-          if [[ "${{github.base_ref}}" == "development" || "${{github.ref}}" == "refs/heads/development" ]]; then
-            echo "::set-output name=cluster::zta-dev"
-            echo "::set-output name=version::v1.$SPRINT-alpha0"
-            echo "::set-output name=vault_url::safe.nasajon.dev"
-          fi
+          echo hello
 
   print:
     runs-on: ubuntu-latest
     needs: init
     steps:
+      # - name: Print
+      #   run: | 
+      #     echo "${{needs.init.outputs.CLUSTER}}"
+      #     echo "${{needs.init.outputs.VERSION}}"
+      #     echo "${{needs.init.outputs.VAULT_URL}}"
+
+      # - name: Sets Vault Key
+      #   run: |
+      #     if [[ "${{github.base_ref}}" == "main" || "${{github.ref}}" == "refs/heads/production" ]]; then
+      #       echo "TESTE=${{ secrets.TESTE }}" >> "$GITHUB_ENV"
+      #     fi
+
+      #     if [[ "${{github.base_ref}}" == "development" || "${{github.ref}}" == "refs/heads/development" ]]; then
+      #       echo "TESTE=${{ secrets.TESTE_DEV }}" >> "$GITHUB_ENV"
+      #     fi
+
       - name: Print
-        run: | 
-          echo "${{needs.init.outputs.CLUSTER}}"
-          echo "${{needs.init.outputs.VERSION}}"
-          echo "${{needs.init.outputs.VAULT_URL}}"
-
-      - name: Sets Vault Key
         run: |
-          if [[ "${{github.base_ref}}" == "main" || "${{github.ref}}" == "refs/heads/production" ]]; then
-            echo "TESTE=${{ secrets.TESTE }}" >> "$GITHUB_ENV"
-          fi
-
-          if [[ "${{github.base_ref}}" == "development" || "${{github.ref}}" == "refs/heads/development" ]]; then
-            echo "TESTE=${{ secrets.TESTE_DEV }}" >> "$GITHUB_ENV"
-          fi
-      - name: print
-        run: |
-          echo $TESTE
+          echo $BRANCH
