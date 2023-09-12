@@ -1,0 +1,97 @@
+replicaCount: 2
+
+image:
+  repository: hub.nasajon.com.br/jobmanager
+  pullPolicy: Always
+  tag: "{{ TAG }}"
+
+release: "main"
+
+imagePullSecrets: 
+  - name: hub
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 80
+
+serviceJobs:
+  type: ClusterIP
+  port: 80
+  targetPort: 80
+
+ingress:
+  enabled: false
+#   className: nginx
+#   annotations:
+#     cert-manager.io/cluster-issuer: letsencrypt-prod
+#   hosts:
+#   - host: api4.nasajon.app
+#     paths:
+#       - path: 
+#         pathType: ImplementationSpecific
+
+
+# livenessProbe:
+#   httpGet:
+#     path: /healthcheck
+#     port: http
+#   initialDelaySeconds: 10
+
+# readinessProbe:
+#   httpGet:
+#     path: /healthcheck
+#     port: http
+#   initialDelaySeconds: 10
+
+configMap:
+  create: true
+  name: "aerosoft-configmap"
+  data:
+    bd_host: "nasajon-bd02.skyone.app"
+    bd_nome: "nasajon_01014373000508_homologacao"
+    bd_porta: "5432"
+    JOB_MANAGER_USER_ENVVAR: "True"
+secret:
+  create: true
+  name: "aerosoft-secrets"
+  data: 
+    bd_user: "jobmanager_web"
+  
+resources: {}
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+affinityJobs: {}
+
+# affinity: 
+#   nodeAffinity:
+#     requiredDuringSchedulingIgnoredDuringExecution:
+#       nodeSelectorTerms:
+#       - matchExpressions:
+#         - key: app-type
+#           operator: In
+#           values:
+#           - application

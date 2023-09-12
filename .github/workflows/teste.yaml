@@ -31,14 +31,19 @@ jobs:
       - name: Set variables
         id: setvars
         run: |
+          echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_ENV
           files=$(find ci -name "*-values.yaml" -type f -printf "%f\n")
           # echo "arquivos=${files[@]}" >> "$GITHUB_ENV"
           file_list=()
           for file in $files; do
-            release = ${yq '.release' ci/$file}
+            echo $file
+            release=$(yq '.release' ci/$file)
             echo $release
-            name="${file%-values.yaml}"
-            file_list+=("$name")
+            if [[ $release == $branch ]]; then
+              echo here
+              name="${file%-values.yaml}"
+              file_list+=("$name")
+            fi
           done
           echo "nomes=${file_list[@]}" >> "$GITHUB_ENV"
 
@@ -63,3 +68,4 @@ jobs:
       - name: Print
         run: |
           echo $BRANCH
+          for file in ${file_list[@]}; do echo $file; done
