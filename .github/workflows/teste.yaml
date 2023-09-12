@@ -52,6 +52,7 @@ jobs:
   print:
     runs-on: ubuntu-latest
     needs: init
+    if: ${{ needs.init.outputs.NAMES != '' }}
     steps:
       - name: Sets env vars for environment
         run: |
