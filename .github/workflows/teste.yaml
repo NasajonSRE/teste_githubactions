@@ -33,7 +33,7 @@ jobs:
         id: setvars
         run: |
           echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_ENV
-          echo $branch
+          echo ${{ env.branch }}
           files=$(find ci -name "*-values.yaml" -type f -printf "%f\n")
           # echo "arquivos=${files[@]}" >> "$GITHUB_ENV"
           file_list=()
@@ -41,7 +41,7 @@ jobs:
             echo $file
             release=$(yq '.release' ci/$file)
             echo $release
-            if [[ $release == $branch ]]; then
+            if [[ $release == ${{ env.branch }} ]]; then
               echo here
               name="${file%-values.yaml}"
               file_list+=("$name")
