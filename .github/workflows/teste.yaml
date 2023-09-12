@@ -74,3 +74,29 @@ jobs:
           echo $BRANCH
           for file in $NAMES; do echo $file; done
           echo "vixe"
+
+  print2:
+    runs-on: ubuntu-latest
+    needs: [init, print]
+    steps:
+      - name: Sets env vars for environment
+        run: |
+          echo "BRANCH=$(echo ${{needs.init.outputs.BRANCH}})" >> $GITHUB_ENV
+
+      # - name: Sets Vault Key
+      #   run: |
+      #     if [[ "${{github.base_ref}}" == "main" || "${{github.ref}}" == "refs/heads/production" ]]; then
+      #       echo "TESTE=${{ secrets.TESTE }}" >> "$GITHUB_ENV"
+      #     fi
+
+      #     if [[ "${{github.base_ref}}" == "development" || "${{github.ref}}" == "refs/heads/development" ]]; then
+      #       echo "TESTE=${{ secrets.TESTE_DEV }}" >> "$GITHUB_ENV"
+      #     fi
+
+      - name: Print
+        env:
+          NAMES: ${{ needs.init.outputs.NAMES }}
+        run: |
+          echo $BRANCH
+          for file in $NAMES; do echo $file; done
+          echo "vixe"
