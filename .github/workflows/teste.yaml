@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       BRANCH: ${{ env.branch }}
+      NAMES: ${{ env.nomes }}
     #   VERSION: ${{ steps.setvars.outputs.version }}
     #   VAULT_URL: ${{ steps.setvars.outputs.vault_url }}
 
@@ -66,6 +67,8 @@ jobs:
       #     fi
 
       - name: Print
+        env:
+          NAMES: ${{ needs.init.outputs.NAMES }}
         run: |
           echo $BRANCH
-          for file in ${file_list[@]}; do echo $file; done
+          for file in $NAMES; do echo $file; done
